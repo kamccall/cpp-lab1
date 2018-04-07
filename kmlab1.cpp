@@ -25,11 +25,11 @@ void recursive_creation(int leaves)
       // FIRST METHOD: FORK BOTH AND LET RUN PARALLEL
       child1 = fork();
       if (child1 < 0) perror("error forking process...");
-      else if (child1 == 0)  // left child process
+      else if (child1 == 0)     // left child process
       {
          recursive_creation(leftLeaves);
       }
-      else                  // parent process
+      else                      // parent process afte first fork
       {
          child2 = fork();
          if (child2 < 0) perror("error forking process...");
@@ -37,21 +37,16 @@ void recursive_creation(int leaves)
          {
             recursive_creation(rightLeaves);
          }
-         else
+         else                   // parent process after second fork
          {
             wait(&child1);
             wait(&child2);
          }
-         // parent process 'falls through' and does nothing more
       }
-
-      // wait for both children to complete
-      // wait(&child1);
-      // wait(&child2);
       // END FIRST METHOD
 
       // SECOND METHOD: FORK FIRST CHILD AND WAIT UNTIL FORKING SECOND
-      // this makes no sense because it blocked execution
+      // this makes no sense because it blocks execution
       // child1 = fork();
       // if (child1 == 0)   // left child process
       // {
