@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <sys/wait.h>   // wait
 #include <queue>
+#include <stdio.h>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -21,42 +23,49 @@ void recursive_creation(int leaves)
       leftLeaves = leaves - rightLeaves;
 
       // FIRST METHOD: FORK BOTH AND LET RUN PARALLEL
-      // child1 = fork();
-      // if (child1 == 0)    // left child process
-      // {
-      //    recursive_creation(leftLeaves);
-      // }
-      // else    // parent process
-      // {
-      //    child2 = fork();
-      //    if (child2 == 0) // right child process
-      //    {
-      //       recursive_creation(rightLeaves);
-      //    }
-      // }
-
-      // // wait for both children to complete
-      // wait(&child1);
-      // wait(&child2);
-      // waitpid(child2, NULL, 0);
-      // END FIRST METHOD
-
-
-      // SECOND METHOD: FORK FIRST CHILD AND WAIT UNTIL FORKING SECOND
       child1 = fork();
-      if (child1 == 0)   // left child process
+      if (child1 < 0) perror("error forking process...");
+      else if (child1 == 0)  // left child process
       {
          recursive_creation(leftLeaves);
       }
-      wait(&child1);
-
-      child2 = fork();   // right child process
-      if (child2 == 0)
+      else                  // parent process
       {
-         recursive_creation(rightLeaves);
+         child2 = fork();
+         if (child2 < 0) perror("error forking process...");
+         else if (child2 == 0)  // right child process
+         {
+            recursive_creation(rightLeaves);
+         }
+         else
+         {
+            wait(&child1);
+            wait(&child2);
+         }
+         // parent process 'falls through' and does nothing more
       }
-      wait(&child2);
-      // // END SECOND METHOD
+
+      // wait for both children to complete
+      // wait(&child1);
+      // wait(&child2);
+      // END FIRST METHOD
+
+      // SECOND METHOD: FORK FIRST CHILD AND WAIT UNTIL FORKING SECOND
+      // this makes no sense because it blocked execution
+      // child1 = fork();
+      // if (child1 == 0)   // left child process
+      // {
+      //    recursive_creation(leftLeaves);
+      // }
+      // wait(&child1);
+
+      // child2 = fork();   // right child process
+      // if (child2 == 0)
+      // {
+      //    recursive_creation(rightLeaves);
+      // }
+      // wait(&child2);
+      // END SECOND METHOD
 
       exit(0);
    }
